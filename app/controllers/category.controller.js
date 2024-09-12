@@ -21,6 +21,7 @@ class CategoryController {
         where: whereClause,
         limit: parseInt(limit),
         offset: parseInt(offset),
+        order: [['category_id', 'DESC']],
       });
 
       const totalPages = Math.ceil(count / limit);

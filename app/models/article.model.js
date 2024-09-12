@@ -26,7 +26,7 @@ const Article = sequelize.define("article", {
     privacy: {
         type: DataTypes.ENUM("public", "private"),
         allowNull: false,
-        defaultValue: "public"
+        defaultValue: "private"
     },
     is_draft: {
         type: DataTypes.BOOLEAN,
@@ -37,6 +37,10 @@ const Article = sequelize.define("article", {
         type: DataTypes.STRING,
         allowNull: false
     },
+    image_url: {
+        type: DataTypes.STRING,
+        allowNull: false
+    }
 }, {
     tableName: "articles",
     timestamps: true
