@@ -1,8 +1,8 @@
-# Cấu trúc thư mục dự án Node.js Rest APIs với Express & MySQL
+# BLOG TECH
 
 ## Clone Repo
 ```
-git clone https://github.com/namchuminh/nodejs_express_mysql_api_structure.git
+git clone https://github.com/namchuminh/blog_tech.git
 ```
 
 ## Project setup
