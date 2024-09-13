@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const Comment = require('../models/comment.model');
 const Article = require('../models/article.model');
 const User = require('../models/user.model');
+const Notification = require('../models/notification.model');
 
 class CommentController {
     // [GET] /comments
@@ -24,7 +25,7 @@ class CommentController {
             const { rows: comments, count } = await Comment.findAndCountAll({
                 where: whereClause,
                 include: [
-                    { model: Article, attributes: ['title'] }, // Include article title
+                    { model: Article, attributes: ['title', 'slug'] }, // Include article title
                     { model: User, attributes: ['username'] }   // Include user info (username)
                 ],
                 limit: parseInt(limit),
@@ -100,6 +101,21 @@ class CommentController {
                 where: { user_id },
                 attributes: ['fullname', 'avatar_url', 'username']
             });
+
+            // Lấy thông tin chủ bài viết (người nhận thông báo)
+            const articleOwnerId = article.user_id;
+
+            // Tạo thông báo cho chủ bài viết
+            if (articleOwnerId !== user_id) {  // Không thông báo nếu người bình luận là chủ bài viết
+                await Notification.create({
+                    user_id: articleOwnerId,  // Chủ bài viết nhận thông báo
+                    type: "comment",  // Loại thông báo là bình luận
+                    related_user_id: user_id,  // Người thực hiện hành động
+                    article_id: id,  // ID bài viết có liên quan
+                    comment_id: newComment.comment_id  // ID bình luận có liên quan
+                });
+            }
+
 
             // Trả về phản hồi với thông tin bình luận và người dùng
             res.status(201).json({
