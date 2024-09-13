@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 12, 2024 at 12:35 PM
+-- Generation Time: Sep 13, 2024 at 10:16 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -33,12 +33,24 @@ CREATE TABLE `articles` (
   `title` varchar(255) DEFAULT NULL,
   `content` text DEFAULT NULL,
   `tags` varchar(255) DEFAULT NULL,
-  `privacy` enum('public','private') DEFAULT 'public',
+  `privacy` enum('public','private') DEFAULT 'private',
   `is_draft` tinyint(1) DEFAULT 0,
   `slug` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `image_url` text NOT NULL,
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `articles`
+--
+
+INSERT INTO `articles` (`article_id`, `user_id`, `title`, `content`, `tags`, `privacy`, `is_draft`, `slug`, `image_url`, `createdAt`, `updatedAt`) VALUES
+(2, 1, 'Bài Viết', 'Nội dung bài viết', 'bài viết, bài viết', 'private', 0, 'bai-viet', 'uploads/articles/image_url-1726151430219-130147889.jpg', '2024-09-12 14:30:30', '2024-09-12 14:30:30'),
+(3, 1, 'Bài Viết 1', 'Nội dung bài viết 1', 'bài viết, bài viết 1', 'public', 1, 'bai-viet123', 'uploads/articles/image_url-1726152785436-14990730.png', '2024-09-12 14:32:22', '2024-09-12 14:59:02'),
+(4, 1, 'Bài Viết', 'Nội dung bài viết', 'bài viết, bài viết', 'public', 0, 'bai-viet', 'uploads/articles/image_url-1726152317559-846594829.jpg', '2024-09-12 14:45:17', '2024-09-12 14:45:17'),
+(5, 1, 'Bài Viết', 'Nội dung bài viết', 'bài viết, bài viết', 'public', 0, 'bai-viet11', 'uploads/articles/image_url-1726152610394-877168333.jpg', '2024-09-12 14:50:10', '2024-09-12 14:50:10'),
+(6, 2, 'Bài Viết 1', 'Nội dung bài viết 1', 'bài viết, bài viết 1', 'public', 0, 'bai-viet-abcde', 'uploads/articles/image_url-1726153905628-412533108.png', '2024-09-12 15:03:18', '2024-09-12 15:12:38');
 
 -- --------------------------------------------------------
 
@@ -99,9 +111,17 @@ CREATE TABLE `categories` (
   `name` varchar(255) NOT NULL,
   `slug` varchar(255) NOT NULL,
   `image_url` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`category_id`, `name`, `slug`, `image_url`, `createdAt`, `updatedAt`) VALUES
+(2, 'Chuyên mục mới 2', 'chuyen-muc-moi-2', 'uploads/categories/image_url-1726146413355-854054809.jpg', '2024-09-12 13:06:53', '2024-09-12 13:06:53'),
+(4, 'Chuyên mục mới 2', 'chuyen-muc-moi', 'uploads/categories/image_url-1726149705623-519731368.jpg', '2024-09-12 14:01:45', '2024-09-12 14:01:45');
 
 -- --------------------------------------------------------
 
@@ -113,11 +133,17 @@ CREATE TABLE `comments` (
   `comment_id` int(11) NOT NULL,
   `article_id` int(11) DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
-  `parent_comment_id` int(11) DEFAULT NULL,
   `content` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `comments`
+--
+
+INSERT INTO `comments` (`comment_id`, `article_id`, `user_id`, `content`, `createdAt`, `updatedAt`) VALUES
+(1, 2, 1, 'ABCDE', '2024-09-13 08:05:50', '2024-09-13 08:05:50');
 
 -- --------------------------------------------------------
 
@@ -271,8 +297,7 @@ ALTER TABLE `categories`
 ALTER TABLE `comments`
   ADD PRIMARY KEY (`comment_id`),
   ADD KEY `article_id` (`article_id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `parent_comment_id` (`parent_comment_id`);
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `followers`
@@ -328,7 +353,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `articles`
 --
 ALTER TABLE `articles`
-  MODIFY `article_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `article_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `article_images`
@@ -352,13 +377,13 @@ ALTER TABLE `article_views`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `followers`
@@ -437,8 +462,7 @@ ALTER TABLE `article_views`
 --
 ALTER TABLE `comments`
   ADD CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`article_id`) REFERENCES `articles` (`article_id`),
-  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `comments_ibfk_3` FOREIGN KEY (`parent_comment_id`) REFERENCES `comments` (`comment_id`);
+  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
 
 --
 -- Constraints for table `followers`
