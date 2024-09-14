@@ -70,9 +70,9 @@ class CategoryController {
 
     try {
 
-      if(!name || !slug) return res.status(400).json({ message: "Tên và đường dẫn danh mục là bắt buộc" });
+      if (!name || !slug) return res.status(400).json({ message: "Tên và đường dẫn danh mục là bắt buộc" });
 
-      if(!image_url) return res.status(400).json({ message: "Vui lòng chọn ảnh danh mục" });
+      if (!image_url) return res.status(400).json({ message: "Vui lòng chọn ảnh danh mục" });
 
       image_url = image_url.path.replace(/\\/g, '/');
 

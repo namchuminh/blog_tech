@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const User = require("../models/user.model.js");
+const Follower = require("../models/follower.model.js");
 const createUploader = require('../middlewares/upload.middleware.js');
 
 const upload = createUploader();
@@ -47,13 +48,42 @@ class UserController {
   // [GET] /user/:id
   async show(req, res) {
     try {
-      const user = await User.findByPk(req.params.id, {
+      const { id } = req.params; // Có thể là user_id hoặc username
+
+      // Tìm người dùng bằng user_id hoặc username
+      const user = await User.findOne({
+        where: {
+          [Op.or]: [
+            { user_id: id },      // Tìm theo user_id
+            { username: id }      // Tìm theo username
+          ]
+        },
         attributes: ['user_id', 'username', 'email', 'fullname', 'avatar_url', 'bio', 'role', 'createdAt']
       });
+
       if (!user) {
         return res.status(404).json({ message: "Không tìm thấy người dùng" });
       }
-      res.status(200).json(user);
+
+      // Lấy số lượng follower của người dùng
+      const followerCount = await Follower.count({
+        where: { followed_user_id: user.user_id }
+      });
+
+      // Trả về thông tin người dùng cùng số lượng follower
+      res.status(200).json({
+        user: {
+          user_id: user.user_id,
+          username: user.username,
+          email: user.email,
+          fullname: user.fullname,
+          avatar_url: user.avatar_url,
+          bio: user.bio,
+          role: user.role,
+          createdAt: user.createdAt
+        },
+        followerCount
+      });
     } catch (error) {
       res.status(500).json({ message: "Lỗi khi lấy thông tin người dùng", error });
     }
@@ -82,8 +112,8 @@ class UserController {
 
       const { fullname, bio } = req.body;
 
-      if(!fullname) return res.status(400).json({ message: "Họ tên là bắt buộc" });
-      
+      if (!fullname) return res.status(400).json({ message: "Họ tên là bắt buộc" });
+
       // Thực hiện upload avatar nếu có file
       if (req.file) {
         let avatar_url = req.file.path.replace(/\\/g, '/');
@@ -91,17 +121,17 @@ class UserController {
           { fullname, avatar_url, bio },
           { where: { user_id: userId } }
         );
-      }else{
+      } else {
         await User.update(
           { fullname, bio },
           { where: { user_id: userId } }
         );
       }
-    
+
       const updatedUser = await User.findOne(
-        { 
+        {
           where: { user_id: userId },
-          attributes: ['user_id', 'username', 'email', 'fullname', 'avatar_url', 'bio', 'role', 'createdAt'] 
+          attributes: ['user_id', 'username', 'email', 'fullname', 'avatar_url', 'bio', 'role', 'createdAt']
         }
       );
 
