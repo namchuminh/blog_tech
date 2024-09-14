@@ -72,6 +72,7 @@ class AuthController {
                 return res.status(400).json({ message: "Mật khẩu không đúng" });
             }
 
+            if(user.role == "blocked") return res.status(400).json({ message: "Tài khoản hiện đang bị cấm khỏi hệ thống" });
             // Tạo JWT
             const token = jwt.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
             const refreshToken = jwt.sign({ userId: user.user_id, role: user.role }, JWT_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
