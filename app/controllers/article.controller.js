@@ -1,4 +1,5 @@
 const Article = require('../models/article.model.js');
+const ArticleView = require('../models/article_view.model.js');
 const { Op } = require('sequelize');
 const path = require('path');
 const fs = require('fs');
@@ -9,13 +10,24 @@ class ArticleController {
     async index(req, res) {
         const { search, page = 1, limit = 10 } = req.query;
         const offset = (page - 1) * limit;
+        const { role, userId } = req.user; // Lấy role và userId từ req.user
 
+        console.log(role, userId)
+    
         try {
             // Build where clause for search functionality
-            const whereClause = search
+            let whereClause = search
                 ? { title: { [Op.like]: `%${search}%` } }
                 : {};
-
+    
+            // Nếu role là "user", thêm điều kiện chỉ lấy các bài viết của user đó
+            if (role === 'user') {
+                whereClause = {
+                    ...whereClause,
+                    user_id: userId // Chỉ lấy các bài viết của user hiện tại
+                };
+            }
+    
             // Fetch articles with pagination and order
             const { rows, count } = await Article.findAndCountAll({
                 where: whereClause,
@@ -23,9 +35,9 @@ class ArticleController {
                 offset: parseInt(offset),
                 order: [['article_id', 'DESC']], // Order by article_id in descending order
             });
-
+    
             const totalPages = Math.ceil(count / limit);
-
+    
             // Send response in the desired format
             res.status(200).json({
                 totalArticles: count, // Total number of articles
@@ -41,25 +53,40 @@ class ArticleController {
     // [GET] /articles/:id
     async show(req, res) {
         const { idOrSlug } = req.params;
-
+    
         try {
             // Tìm bài viết dựa trên article_id hoặc slug
             const article = await Article.findOne({
                 where: {
                     [Op.or]: [
                         { article_id: idOrSlug },
-                        { slug: idOrSlug },
+                        { slug: idOrSlug }
                     ],
                     privacy: 'public',
                     is_draft: false
                 }
             });
-
+    
             if (!article) {
                 return res.status(404).json({ message: "Không tìm thấy bài viết" });
             }
-
-            res.status(200).json(article);
+    
+            // Tăng lượt xem
+            const [articleView, created] = await ArticleView.findOrCreate({
+                where: { article_id: article.article_id },
+                defaults: { view_count: 1 } // Nếu bài viết chưa có lượt xem, tạo mới với view_count = 1
+            });
+    
+            if (!created) {
+                articleView.view_count += 1;
+                await articleView.save();  // Lưu lại số lượt xem mới
+            }
+    
+            // Trả về thông tin bài viết và số lượt xem
+            res.status(200).json({
+                article,
+                view_count: articleView.view_count
+            });
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy bài viết", error });
         }

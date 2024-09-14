@@ -11,6 +11,6 @@ router.put('/:id', authenticateToken, upload.single('image_url'), articleControl
 router.put('/:id/draft', authenticateToken, upload.single('image_url'), articleController.draft);
 router.patch('/:id/public', authenticateToken, requireAdmin, articleController.public);
 router.post('/', authenticateToken, upload.single('image_url'), articleController.add);
-router.get('/', authenticateToken, requireAdmin, articleController.index);
+router.get('/', authenticateToken, articleController.index);
 
 module.exports = router;
