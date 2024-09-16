@@ -10,10 +10,7 @@ class ArticleController {
     async index(req, res) {
         const { search, page = 1, limit = 10 } = req.query;
         const offset = (page - 1) * limit;
-        const { role, userId } = req.user; // Lấy role và userId từ req.user
-
-        console.log(role, userId)
-    
+        const { role, userId } = req.user; // Lấy role và userId từ req.user    
         try {
             // Build where clause for search functionality
             let whereClause = search
@@ -28,6 +25,43 @@ class ArticleController {
                 };
             }
     
+            // Fetch articles with pagination and order
+            const { rows, count } = await Article.findAndCountAll({
+                where: whereClause,
+                limit: parseInt(limit),
+                offset: parseInt(offset),
+                order: [['article_id', 'DESC']], // Order by article_id in descending order
+            });
+    
+            const totalPages = Math.ceil(count / limit);
+    
+            // Send response in the desired format
+            res.status(200).json({
+                totalArticles: count, // Total number of articles
+                currentPage: parseInt(page), // Current page
+                totalPages, // Total pages
+                articles: rows, // Array of articles
+            });
+        } catch (error) {
+            res.status(500).json({ message: "Lỗi khi truy vấn bài viết", error });
+        }
+    }
+
+    // [GET] /articles/list
+    async list(req, res) {
+        const { search, page = 1, limit = 10 } = req.query;
+        const offset = (page - 1) * limit;
+        try {
+            // Build where clause for search functionality
+            let whereClause = search
+                ? { title: { [Op.like]: `%${search}%` } }
+                : {};
+    
+            whereClause = {
+                ...whereClause,
+                privacy: 'public' // Chỉ lấy các bài viết được duyệt
+            };
+
             // Fetch articles with pagination and order
             const { rows, count } = await Article.findAndCountAll({
                 where: whereClause,

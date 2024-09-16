@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 13, 2024 at 10:16 AM
+-- Generation Time: Sep 14, 2024 at 01:22 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -97,8 +97,17 @@ CREATE TABLE `article_likes` (
 CREATE TABLE `article_views` (
   `view_id` int(11) NOT NULL,
   `article_id` int(11) DEFAULT NULL,
-  `view_count` int(11) DEFAULT 0
+  `view_count` int(11) DEFAULT 0,
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `article_views`
+--
+
+INSERT INTO `article_views` (`view_id`, `article_id`, `view_count`, `createdAt`, `updatedAt`) VALUES
+(1, 4, 6, '2024-09-14 08:49:19', '2024-09-14 08:49:19');
 
 -- --------------------------------------------------------
 
@@ -143,7 +152,9 @@ CREATE TABLE `comments` (
 --
 
 INSERT INTO `comments` (`comment_id`, `article_id`, `user_id`, `content`, `createdAt`, `updatedAt`) VALUES
-(1, 2, 1, 'ABCDE', '2024-09-13 08:05:50', '2024-09-13 08:05:50');
+(1, 2, 1, 'ABCDE', '2024-09-13 08:05:50', '2024-09-13 08:05:50'),
+(4, 2, 2, 'Test comment', '2024-09-13 08:37:33', '2024-09-13 08:37:33'),
+(5, 2, 2, 'Test comment', '2024-09-13 08:38:23', '2024-09-13 08:38:23');
 
 -- --------------------------------------------------------
 
@@ -155,7 +166,8 @@ CREATE TABLE `followers` (
   `follower_id` int(11) NOT NULL,
   `follower_user_id` int(11) DEFAULT NULL,
   `followed_user_id` int(11) DEFAULT NULL,
-  `followed_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -171,8 +183,19 @@ CREATE TABLE `notifications` (
   `related_user_id` int(11) DEFAULT NULL,
   `article_id` int(11) DEFAULT NULL,
   `comment_id` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`notification_id`, `user_id`, `type`, `related_user_id`, `article_id`, `comment_id`, `createdAt`, `updatedAt`) VALUES
+(1, 1, 'comment', 2, 2, 5, '2024-09-13 08:38:23', '2024-09-13 08:38:23'),
+(2, 2, 'follow', 1, NULL, NULL, '2024-09-14 08:18:16', '2024-09-14 08:18:16'),
+(3, 2, 'follow', 1, NULL, NULL, '2024-09-14 08:34:09', '2024-09-14 08:34:09'),
+(4, 2, 'follow', 1, NULL, NULL, '2024-09-14 08:34:18', '2024-09-14 08:34:18');
 
 -- --------------------------------------------------------
 
@@ -196,9 +219,10 @@ CREATE TABLE `password_resets` (
 CREATE TABLE `reading_lists` (
   `list_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
+  `article_id` int(11) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedAt` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -241,7 +265,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`user_id`, `email`, `username`, `role`, `password_hash`, `fullname`, `avatar_url`, `bio`, `social_login_provider`, `social_login_id`, `createdAt`, `updatedAt`) VALUES
 (1, 'nguyenvana@gmail.com', 'nguyenvana', 'admin', '$2a$10$E7dt83uiiiAP4/yR9UBsROd6BlwBnze8z9MNl9Kli60xRdKh5Vhv.', 'Nguyễn Văn A', 'uploads/users/avatar_url-1726136993711-786280688.jpg', 'Nguyễn văn a đẹp trai', NULL, NULL, '2024-09-12 09:07:33', '2024-09-12 10:29:53'),
-(2, 'nguyenvanb@gmail.com', 'nguyenvanb', 'blocked', '$2a$10$z7jIxoJjyLp9wSEeJR4Lke9ZpDer2i/z8P6bapVLqcgT3oLSB5aka', 'Nguyen Van B', NULL, NULL, NULL, NULL, '2024-09-12 09:19:56', '2024-09-12 10:27:20'),
+(2, 'nguyenvanb@gmail.com', 'nguyenvanb', 'blocked', '$2a$10$z7jIxoJjyLp9wSEeJR4Lke9ZpDer2i/z8P6bapVLqcgT3oLSB5aka', 'Nguyen Van B', NULL, NULL, NULL, NULL, '2024-09-12 09:19:56', '2024-09-14 09:00:47'),
 (3, 'nguyenvanc@gmail.com', 'nguyenvanc', 'user', '$2a$10$JO8pAkx6znT70kzkATz1WO3Q2WFMFyDFOVwokfgLNVT1QSvcX6Eym', 'Nguyen Van C', 'uploads/users/avatar.jpg', NULL, NULL, NULL, '2024-09-12 10:31:49', '2024-09-12 10:31:49');
 
 --
@@ -329,7 +353,8 @@ ALTER TABLE `password_resets`
 --
 ALTER TABLE `reading_lists`
   ADD PRIMARY KEY (`list_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `article_id` (`article_id`);
 
 --
 -- Indexes for table `search_history`
@@ -371,7 +396,7 @@ ALTER TABLE `article_likes`
 -- AUTO_INCREMENT for table `article_views`
 --
 ALTER TABLE `article_views`
-  MODIFY `view_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `view_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -383,19 +408,19 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `comment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `followers`
 --
 ALTER TABLE `followers`
-  MODIFY `follower_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `follower_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
@@ -490,7 +515,8 @@ ALTER TABLE `password_resets`
 -- Constraints for table `reading_lists`
 --
 ALTER TABLE `reading_lists`
-  ADD CONSTRAINT `reading_lists_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+  ADD CONSTRAINT `reading_lists_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `reading_lists_ibfk_2` FOREIGN KEY (`article_id`) REFERENCES `articles` (`article_id`) ON DELETE CASCADE ON UPDATE NO ACTION;
 
 --
 -- Constraints for table `search_history`
