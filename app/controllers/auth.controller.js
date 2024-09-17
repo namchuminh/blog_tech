@@ -89,7 +89,7 @@ class AuthController {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
-            return res.status(401).json({ message: "Vui lòng cung cấp refresh token" });
+            return res.status(400).json({ message: "Vui lòng cung cấp refresh token" });
         }
 
         try {
@@ -100,7 +100,7 @@ class AuthController {
 
             return res.status(200).json({ token: newToken, refreshToken: newRefreshToken });
         } catch (error) {
-            return res.status(401).json({ message: "Refresh token không hợp lệ", error });
+            return res.status(400).json({ message: "Refresh token không hợp lệ", error });
         }
     }
 
