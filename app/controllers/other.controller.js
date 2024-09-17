@@ -4,6 +4,7 @@ const ArticleView = require('../models/article_view.model');
 const ArticleLike = require('../models/article_like.model');
 const Comment = require('../models/comment.model');
 const User = require('../models/user.model');
+const Category = require('../models/category.model.js');
 const { Op, fn, col } = require("sequelize");
 
 class OtherController {
@@ -113,6 +114,95 @@ class OtherController {
             });
         } catch (error) {
             res.status(500).json({ message: 'Lỗi khi lấy bài viết top trending', error });
+        }
+    }
+
+    // [GET] /other/list_categories
+    async listCategories(req, res) {
+        const { search } = req.query;
+
+        try {
+            // Build where clause for search functionality
+            const whereClause = search
+                ? { name: { [Op.like]: `%${search}%` } }
+                : {};
+
+            // Fetch all categories without pagination
+            const categories = await Category.findAll({
+                where: whereClause,
+                order: [['category_id', 'DESC']],
+            });
+
+            // Send response with all categories
+            res.status(200).json({
+                totalCategories: categories.length, // Total number of categories
+                categories, // Array of categories
+            });
+        } catch (error) {
+            res.status(500).json({ message: "Lỗi khi truy vấn danh mục", error });
+        }
+    }
+
+    // [GET] /orthers/last_comments
+    async lastComments(req, res) {
+        try {
+            const comments = await Comment.findAll({
+                limit: 3, // Giới hạn lấy 3 bình luận
+                order: [['createdAt', 'DESC']], // Sắp xếp theo thời gian mới nhất
+                include: [
+                    {
+                        model: User, // Bao gồm thông tin người dùng
+                        attributes: ['fullname', 'avatar_url'] // Chỉ lấy tên và avatar
+                    },
+                    {
+                        model: Article, // Bao gồm thông tin bài viết
+                        attributes: ['title', 'slug'] // Chỉ lấy tiêu đề và slug của bài viết
+                    }
+                ]
+            });
+
+            res.status(200).json({
+                message: '3 bình luận mới nhất',
+                comments
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: 'Lỗi khi lấy bình luận',
+                error
+            });
+        }
+    }
+
+    async mostPopular(req, res) {
+        try {
+            const query = `
+                SELECT 
+                    a.article_id, 
+                    a.title, 
+                    a.slug, 
+                    a.image_url, 
+                    a.user_id, 
+                    a.createdAt, 
+                    COALESCE(SUM(av.view_count), 0) AS total_views
+                FROM articles AS a
+                LEFT JOIN article_views AS av ON a.article_id = av.article_id
+                GROUP BY a.article_id, a.title, a.slug, a.image_url, a.user_id, a.createdAt
+                ORDER BY total_views DESC
+                LIMIT 3;
+            `;
+
+
+
+            // Trả về kết quả
+            res.status(200).json({
+                message: '3 bài viết có lượt xem cao nhất',
+                articles: await sequelize.query(query, { type: sequelize.QueryTypes.SELECT })
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: 'Lỗi khi lấy bài viết có lượt xem cao nhất',
+                error
+            });
         }
     }
 }
