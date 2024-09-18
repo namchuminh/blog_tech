@@ -3,11 +3,11 @@ const PasswordReset = require("../models/password_reset.model.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Bí mật JWT từ biến môi trường
-const JWT_EXPIRES_IN = '1h'; // Thời gian hết hạn của token
+const JWT_EXPIRES_IN = '5s'; // Thời gian hết hạn của token
 const JWT_REFRESH_EXPIRES_IN = '7d'; // Thời gian hết hạn của refresh token
 
 class AuthController {
@@ -93,12 +93,23 @@ class AuthController {
         }
 
         try {
+            
             // Xác thực refresh token
             const decoded = jwt.verify(refreshToken, JWT_SECRET);
-            const newToken = jwt.sign({ userId: decoded.userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-            const newRefreshToken = jwt.sign({ userId: decoded.userId }, JWT_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
 
-            return res.status(200).json({ token: newToken, refreshToken: newRefreshToken });
+            const user = await User.findOne({
+                where: {
+                  user_id: decoded.userId
+                }
+            });
+
+            if(!user) return res.status(400).json({ message: "Tài khoản không tồn tại", error }); 
+
+            if(user.role == "blocked") return res.status(400).json({ message: "Tài khoản bị cấm khỏi hệ thống", error }); 
+
+            const newToken = jwt.sign({ userId: decoded.userId, role: decoded.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+            return res.status(200).json({ token: newToken });
         } catch (error) {
             return res.status(400).json({ message: "Refresh token không hợp lệ", error });
         }
