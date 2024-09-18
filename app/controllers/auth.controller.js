@@ -7,7 +7,7 @@ const { Op, where } = require("sequelize");
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Bí mật JWT từ biến môi trường
-const JWT_EXPIRES_IN = '5s'; // Thời gian hết hạn của token
+const JWT_EXPIRES_IN = '1h'; // Thời gian hết hạn của token
 const JWT_REFRESH_EXPIRES_IN = '7d'; // Thời gian hết hạn của refresh token
 
 class AuthController {
