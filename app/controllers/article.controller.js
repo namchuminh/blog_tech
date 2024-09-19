@@ -1,6 +1,6 @@
 const Article = require('../models/article.model.js');
 const ArticleView = require('../models/article_view.model.js');
-const ArticleImage = require('../models/article_image.model.js');
+const User = require('../models/user.model.js');
 const Comment = require('../models/comment.model.js');
 const Notification = require('../models/notification.model.js');
 const { Op } = require('sequelize');
@@ -13,7 +13,8 @@ class ArticleController {
     async index(req, res) {
         const { search, page = 1, limit = 10 } = req.query;
         const offset = (page - 1) * limit;
-        const { role, userId } = req.user; // Lấy role và userId từ req.user    
+        const { role, userId } = req.user; // Lấy role và userId từ req.user
+        
         try {
             // Build where clause for search functionality
             let whereClause = search
@@ -26,14 +27,32 @@ class ArticleController {
                     ...whereClause,
                     user_id: userId // Chỉ lấy các bài viết của user hiện tại
                 };
+            }else{
+                if(search){
+                    whereClause = {
+                        [Op.or]: [
+                            { title: { [Op.like]: `%${search}%` } },
+                            { 
+                                '$user.username$': { [Op.like]: `%${search}%` } 
+                            }
+                        ]
+                    };
+                }
             }
     
-            // Fetch articles with pagination and order
+            // Fetch articles with pagination, order, and include user info
             const { rows, count } = await Article.findAndCountAll({
                 where: whereClause,
                 limit: parseInt(limit),
                 offset: parseInt(offset),
                 order: [['article_id', 'DESC']], // Order by article_id in descending order
+                include: [
+                    {
+                        model: User,
+                        as: 'user', // Alias defined in Article model
+                        attributes: ['username'] // Include only the 'username' field
+                    }
+                ]
             });
     
             const totalPages = Math.ceil(count / limit);
@@ -43,7 +62,7 @@ class ArticleController {
                 totalArticles: count, // Total number of articles
                 currentPage: parseInt(page), // Current page
                 totalPages, // Total pages
-                articles: rows, // Array of articles
+                articles: rows, // Array of articles with user info
             });
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi truy vấn bài viết", error });
