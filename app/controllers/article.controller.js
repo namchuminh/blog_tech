@@ -1,5 +1,6 @@
 const Article = require('../models/article.model.js');
 const ArticleView = require('../models/article_view.model.js');
+const ArticleImage = require('../models/article_image.model.js');
 const Comment = require('../models/comment.model.js');
 const Notification = require('../models/notification.model.js');
 const { Op } = require('sequelize');
@@ -85,6 +86,7 @@ class ArticleController {
             res.status(500).json({ message: "Lỗi khi truy vấn bài viết", error });
         }
     }
+    
 
     // [GET] /articles/:id
     async show(req, res) {
@@ -164,6 +166,24 @@ class ArticleController {
             return res.status(201).json({ message: "Thêm bài viết thành công", article: newArticle });
         } catch (error) {
             return res.status(500).json({ message: "Lỗi khi thêm bài viết", error });
+        }
+    }
+
+    // [POST] /articles/uploadImage
+    async uploadImage(req, res) {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ message: 'Vui lòng chọn ảnh' });
+            }
+
+            const image_url = req.file.path.replace(/\\/g, '/'); // Normalize path
+
+            return res.status(200).json({
+                uploaded: true,
+                url: `http://127.0.0.1:3001/${image_url}` // Đường dẫn tới file đã tải lên
+            });
+        } catch (error) {
+            res.status(500).json({ message: 'Error uploading image', error });
         }
     }
 
