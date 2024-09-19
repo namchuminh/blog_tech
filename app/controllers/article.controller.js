@@ -1,5 +1,7 @@
 const Article = require('../models/article.model.js');
 const ArticleView = require('../models/article_view.model.js');
+const Comment = require('../models/comment.model.js');
+const Notification = require('../models/notification.model.js');
 const { Op } = require('sequelize');
 const path = require('path');
 const fs = require('fs');
@@ -290,6 +292,15 @@ class ArticleController {
                     fs.unlinkSync(imagePath);
                 }
             }
+
+            // Xóa tất cả các thông báo liên quan đến bài viết
+            await Notification.destroy({ where: { article_id: id } });
+
+            // Xóa tất cả các bình luận liên quan đến bài viết
+            await Comment.destroy({ where: { article_id: id } });
+
+            // Xóa tất cả các lượt xem liên quan đến bài viết
+            await ArticleView.destroy({ where: { article_id: id } });
 
             await article.destroy();
 
