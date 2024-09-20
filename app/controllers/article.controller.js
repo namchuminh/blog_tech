@@ -14,7 +14,7 @@ class ArticleController {
         const { search, page = 1, limit = 10 } = req.query;
         const offset = (page - 1) * limit;
         const { role, userId } = req.user; // Lấy role và userId từ req.user
-        
+    
         try {
             // Build where clause for search functionality
             let whereClause = search
@@ -27,20 +27,18 @@ class ArticleController {
                     ...whereClause,
                     user_id: userId // Chỉ lấy các bài viết của user hiện tại
                 };
-            }else{
-                if(search){
+            } else {
+                if (search) {
                     whereClause = {
                         [Op.or]: [
                             { title: { [Op.like]: `%${search}%` } },
-                            { 
-                                '$user.username$': { [Op.like]: `%${search}%` } 
-                            }
+                            { '$user.username$': { [Op.like]: `%${search}%` } }
                         ]
                     };
                 }
             }
     
-            // Fetch articles with pagination, order, and include user info
+            // Fetch articles with pagination, order, and include user info & views
             const { rows, count } = await Article.findAndCountAll({
                 where: whereClause,
                 limit: parseInt(limit),
@@ -51,6 +49,11 @@ class ArticleController {
                         model: User,
                         as: 'user', // Alias defined in Article model
                         attributes: ['username'] // Include only the 'username' field
+                    },
+                    {
+                        model: ArticleView,
+                        as: 'views', // Alias defined in relationship
+                        attributes: ['view_count'], // Lấy lượt xem
                     }
                 ]
             });
@@ -62,7 +65,7 @@ class ArticleController {
                 totalArticles: count, // Total number of articles
                 currentPage: parseInt(page), // Current page
                 totalPages, // Total pages
-                articles: rows, // Array of articles with user info
+                articles: rows, // Array of articles with user info and view count
             });
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi truy vấn bài viết", error });
