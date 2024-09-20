@@ -149,6 +149,31 @@ class ArticleController {
         }
     }
 
+    // [GET] /articles/:id/detail
+    async detail(req, res) {
+        const { id } = req.params;
+    
+        try {
+            // Tìm bài viết dựa trên article_id 
+            const article = await Article.findOne({
+                where: {
+                    article_id: id
+                }
+            });
+    
+            if (!article) {
+                return res.status(404).json({ message: "Không tìm thấy bài viết" });
+            }
+    
+            // Trả về thông tin bài viết và số lượt xem
+            return res.status(200).json({
+                article            
+            });
+        } catch (error) {
+            res.status(500).json({ message: "Lỗi khi lấy bài viết", error });
+        }
+    }
+
 
     // [POST] /articles
     async add(req, res) {
@@ -228,7 +253,7 @@ class ArticleController {
     // [PUT] /articles/:id
     async update(req, res) {
         const { id } = req.params;
-        const { title, content, tags, slug } = req.body;
+        const { title, content, tags, slug, is_draft } = req.body;
         const image_url = req.file; // Handle image upload
 
         try {
@@ -260,7 +285,7 @@ class ArticleController {
                 imageUrl = image_url.path.replace(/\\/g, '/');
             }
 
-            await article.update({ title, content, tags, is_draft: 0, slug, image_url: imageUrl });
+            await article.update({ title, content, tags, is_draft: 0, slug, is_draft, image_url: imageUrl });
 
             res.status(200).json({ message: "Cập nhật bài viết thành công", article });
         } catch (error) {
