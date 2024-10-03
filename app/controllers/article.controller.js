@@ -30,6 +30,10 @@ class ArticleController {
                     user_id: userId // Chỉ lấy các bài viết của user hiện tại
                 };
             } else {
+                whereClause = {
+                    ...whereClause,
+                    is_draft: false,
+                };
                 if (search) {
                     whereClause = {
                         [Op.or]: [
@@ -291,6 +295,7 @@ class ArticleController {
         try {
             const { id } = req.params;
             const { title, content, tags, slug, is_draft, categories } = req.body;
+
             const image_url = req.file; // Handle image upload
 
             const article = await Article.findOne({ where: { article_id: id } });
@@ -326,7 +331,11 @@ class ArticleController {
                 imageUrl = image_url.path.replace(/\\/g, '/');
             }
 
-            await article.update({ title, content, tags, is_draft: 0, slug, is_draft, image_url: imageUrl });
+            if(is_draft == 1){
+                await article.update({ title, content, tags, slug, is_draft, image_url: imageUrl, privacy: 'private' });
+            }else{
+                await article.update({ title, content, tags, slug, is_draft, image_url: imageUrl });
+            }
 
             await ArticleCategory.destroy({ where: {article_id: id}});
 
@@ -378,7 +387,7 @@ class ArticleController {
                 imageUrl = image_url.path.replace(/\\/g, '/');
             }
 
-            await article.update({ title, content, tags, is_draft: 1, slug, image_url: imageUrl });
+            await article.update({ title, content, tags, is_draft: 1, slug, image_url: imageUrl, privacy: "private" });
 
             res.status(200).json({ message: "Lưu bản nháp bài viết thành công", article });
         } catch (error) {
