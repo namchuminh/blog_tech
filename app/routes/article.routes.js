@@ -29,4 +29,8 @@ router.post('/', authenticateToken, (req, res, next) => {
 router.get('/:id/detail', authenticateToken, requireAdmin, articleController.detail);
 router.get('/', authenticateToken, articleController.index);
 
+router.patch('/:id/reject', authenticateToken, requireAdmin, articleController.reject);
+router.get('/list/rejected', authenticateToken, articleController.listRejected);
+router.get('/list/rejected/:id', authenticateToken, articleController.detailRejected);
+
 module.exports = router;
