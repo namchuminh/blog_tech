@@ -46,6 +46,40 @@ class OtherController {
         }
     }
 
+    // [GET] /orthers/top_interacts
+    async topInteract(req, res) {
+        try {
+            const query = `
+                SELECT 
+                    a.article_id, 
+                    a.title, 
+                    a.slug, 
+                    a.image_url, 
+                    a.user_id, 
+                    a.createdAt, 
+                    COALESCE(COUNT(*), 0) AS total_comments
+                FROM articles AS a
+                LEFT JOIN comments AS ac ON a.article_id = ac.article_id
+                GROUP BY a.article_id, a.title, a.slug, a.image_url, a.user_id, a.createdAt
+                ORDER BY total_comments DESC
+                LIMIT 4;
+            `;
+
+
+
+            // Trả về kết quả
+            res.status(200).json({
+                message: '4 bài viết có lượt comments cao nhất',
+                articles: await sequelize.query(query, { type: sequelize.QueryTypes.SELECT })
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: 'Lỗi khi lấy bài viết có lượt xem cao nhất',
+                error
+            });
+        }
+    }
+
     // [GET] /orthers/top_trendings
     async topTrending(req, res) {
         const { limit = 2 } = req.query; // Số bài viết top trending mỗi loại (mặc định là 2)
@@ -191,8 +225,6 @@ class OtherController {
                 LIMIT 3;
             `;
 
-
-
             // Trả về kết quả
             res.status(200).json({
                 message: '3 bài viết có lượt xem cao nhất',
@@ -201,6 +233,50 @@ class OtherController {
         } catch (error) {
             res.status(500).json({
                 message: 'Lỗi khi lấy bài viết có lượt xem cao nhất',
+                error
+            });
+        }
+    }
+
+    async newUsers(req, res) {
+        const { limit = 18 } = req.query; // Số lượng người dùng muốn lấy (mặc định là 10)
+        try {
+            const users = await User.findAll({
+                order: [['createdAt', 'DESC']], // Sắp xếp theo ngày tạo (người dùng mới nhất trước)
+                limit: parseInt(limit) // Giới hạn số lượng người dùng trả về
+            });
+    
+            res.status(200).json({
+                totalUsers: users.length,
+                users: users,
+            });
+        } catch (error) {
+            console.error("Lỗi khi lấy người dùng mới:", error);
+            res.status(500).json({ message: "Lỗi khi lấy người dùng mới", error });
+        }
+    }
+
+    async topCategories(req, res) {
+        try {
+            const query = `
+                SELECT c.category_id, c.name, c.slug, c.image_url, COUNT(ac.article_id) AS article_count
+                FROM categories c
+                JOIN article_categories ac ON c.category_id = ac.category_id
+                JOIN articles a ON ac.article_id = a.article_id
+                WHERE a.is_draft = 0 AND a.privacy = 'public'
+                GROUP BY c.category_id, c.name, c.slug, c.image_url
+                ORDER BY article_count DESC
+                LIMIT 4;
+            `;
+
+            // Trả về kết quả
+            res.status(200).json({
+                message: 'Top chuyên mục có nhiều bài viết',
+                categories: await sequelize.query(query, { type: sequelize.QueryTypes.SELECT })
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: 'Lỗi khi lấy chuyên mục',
                 error
             });
         }
