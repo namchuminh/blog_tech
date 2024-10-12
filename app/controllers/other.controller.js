@@ -11,7 +11,7 @@ class OtherController {
 
     // [GET] /orthers/list_articles
     async listArticles(req, res) {
-        const { search, page = 1, limit = 10 } = req.query;
+        const { search, page = 1, limit = 6 } = req.query;
         const offset = (page - 1) * limit;
         try {
             // Build where clause for search functionality
