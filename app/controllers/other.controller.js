@@ -58,6 +58,65 @@ class OtherController {
         }
     }
 
+    async getArticlesByUsername(req, res) {
+        const { search, page = 1, limit = 10 } = req.query;
+        const offset = (page - 1) * limit;
+        const { username } = req.params;
+
+        try {
+            const user = await User.findOne({
+                where: {
+                    username
+                }
+            });
+
+            if(!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
+
+            // Build where clause for search functionality
+            let whereClause = search
+                ? { title: { [Op.like]: `%${search}%` } }
+                : {};
+            
+            whereClause = {
+                ...whereClause,
+                privacy: "public",
+                user_id: user.user_id 
+            };
+
+            // Fetch articles with pagination, order, and include user info & views
+            const { rows, count } = await Article.findAndCountAll({
+                where: whereClause,
+                limit: parseInt(limit),
+                offset: parseInt(offset),
+                order: [['article_id', 'DESC']], // Order by article_id in descending order
+                include: [
+                    {
+                        model: User,
+                        as: 'user', // Alias defined in Article model
+                        attributes: ['username'] // Include only the 'username' field
+                    },
+                    {
+                        model: ArticleView,
+                        as: 'views', // Alias defined in relationship
+                        attributes: ['view_count'], // Lấy lượt xem
+                    }
+                ]
+            });
+
+            const totalPages = Math.ceil(count / limit);
+
+            // Send response in the desired format
+            res.status(200).json({
+                totalArticles: count, // Total number of articles
+                currentPage: parseInt(page), // Current page
+                totalPages, // Total pages
+                articles: rows, // Array of articles with user info and view count
+            });
+        } catch (error) {
+            res.status(500).json({ message: "Lỗi khi truy vấn bài viết", error });
+        }
+    }
+
     // [GET] /orthers/top_interacts
     async topInteract(req, res) {
         try {

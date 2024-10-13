@@ -10,6 +10,7 @@ router.get('/most_popular', ortherController.mostPopular);
 router.get('/top_interacts', ortherController.topInteract);
 router.get('/new_users', ortherController.newUsers);
 router.get('/top_categories', ortherController.topCategories);
+router.get('/articles_username/:username', ortherController.getArticlesByUsername);
 
 
 module.exports = router;
