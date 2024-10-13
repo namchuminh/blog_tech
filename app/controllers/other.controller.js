@@ -34,7 +34,7 @@ class OtherController {
                     {
                         model: User,
                         as: 'user', // Alias defined in Article model
-                        attributes: ['fullname'] // Include only the 'username' field
+                        attributes: ['fullname', 'username'] // Include only the 'username' field
                     },
                     {
                         model: ArticleView,
@@ -57,6 +57,78 @@ class OtherController {
             res.status(500).json({ message: "Lỗi khi truy vấn bài viết", error });
         }
     }
+
+    async topMonthView(req, res) {
+        try {
+            const { page = 1, limit = 6 } = req.query; // Lấy page và limit từ query, với mặc định là 1 và 10
+            const offset = (page - 1) * limit;
+    
+            // Truy vấn lấy các bài viết theo số lượt xem trong tháng hiện tại, áp dụng phân trang
+            const query = `
+                SELECT 
+                    a.article_id, 
+                    a.title, 
+                    a.slug, 
+                    a.image_url, 
+                    a.user_id, 
+                    a.content,
+                    a.createdAt, 
+                    u.username, 
+                    u.fullname, 
+                    COALESCE(SUM(av.view_count), 0) AS total_views
+                FROM articles AS a
+                LEFT JOIN article_views AS av ON a.article_id = av.article_id
+                LEFT JOIN users AS u ON a.user_id = u.user_id  
+                WHERE YEAR(a.createdAt) = YEAR(CURRENT_DATE)  
+                    AND MONTH(a.createdAt) = MONTH(CURRENT_DATE)  
+                GROUP BY 
+                    a.article_id, 
+                    a.title, 
+                    a.slug, 
+                    a.image_url, 
+                    a.user_id, 
+                    a.createdAt,
+                    u.username 
+                ORDER BY total_views DESC
+                LIMIT :limit OFFSET :offset;
+            `;
+    
+            // Truy vấn đếm tổng số bài viết trong tháng hiện tại
+            const countQuery = `
+                SELECT COUNT(DISTINCT a.article_id) AS totalArticles
+                FROM articles AS a
+                WHERE YEAR(a.createdAt) = YEAR(CURRENT_DATE)
+                    AND MONTH(a.createdAt) = MONTH(CURRENT_DATE);
+            `;
+    
+            // Thực thi các truy vấn
+            const articles = await sequelize.query(query, {
+                type: sequelize.QueryTypes.SELECT,
+                replacements: { limit: parseInt(limit), offset: parseInt(offset) },
+            });
+    
+            const countResult = await sequelize.query(countQuery, {
+                type: sequelize.QueryTypes.SELECT,
+            });
+    
+            const totalArticles = countResult[0].totalArticles;
+            const totalPages = Math.ceil(totalArticles / limit);
+    
+            // Trả về kết quả
+            res.status(200).json({
+                totalArticles,
+                currentPage: parseInt(page),
+                totalPages,
+                articles,
+            });
+        } catch (error) {
+            res.status(500).json({
+                message: 'Lỗi khi lấy bài viết có lượt xem cao nhất',
+                error
+            });
+        }
+    }
+    
 
     async getArticlesByUsername(req, res) {
         const { search, page = 1, limit = 10 } = req.query;
