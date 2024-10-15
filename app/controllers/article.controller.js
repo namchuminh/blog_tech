@@ -118,9 +118,8 @@ class ArticleController {
 
     // [GET] /articles/:id
     async show(req, res) {
-        const { idOrSlug } = req.params;
-
         try {
+            const { idOrSlug } = req.params;
             // Tìm bài viết dựa trên article_id hoặc slug
             const article = await Article.findOne({
                 where: {
@@ -130,7 +129,14 @@ class ArticleController {
                     ],
                     privacy: 'public',
                     is_draft: false
-                }
+                },
+                include: [
+                    {
+                        model: User,
+                        as: 'user', 
+                        attributes: ['username', 'fullname'] // Chỉ lấy các trường cần thiết
+                    }
+                ]
             });
 
             if (!article) {
@@ -148,10 +154,29 @@ class ArticleController {
                 await articleView.save();  // Lưu lại số lượt xem mới
             }
 
+            const listCategories = await ArticleCategory.findAll({
+                where: {
+                    article_id: article.article_id
+                },
+                attributes: ['category_id']
+            });
+
+            let categories = [];
+            for (let category of listCategories) {
+                const categoryDetail = await Category.findOne({
+                    where: { category_id: category.category_id },
+                    attributes: ['category_id', 'name', 'slug'] // Chỉ lấy category_id và name
+                });
+                if (categoryDetail) {
+                    categories.push(categoryDetail);
+                }
+            }
+
             // Trả về thông tin bài viết và số lượt xem
             res.status(200).json({
                 article,
-                view_count: articleView.view_count
+                view_count: articleView.view_count,
+                categories
             });
         } catch (error) {
             res.status(500).json({ message: "Lỗi khi lấy bài viết", error });
@@ -161,6 +186,7 @@ class ArticleController {
     // [GET] /articles/:id/detail
     async detail(req, res) {
         const { id } = req.params;
+        const { role, userId } = req.user;
 
         try {
             // Tìm bài viết dựa trên article_id 
@@ -169,6 +195,8 @@ class ArticleController {
                     article_id: id
                 }
             });
+
+            if((role !== "admin") && (userId != article.user_id)) return res.status(400).json({ message: "Bạn không có quyền thực hiện!" });
 
             if (!article) {
                 return res.status(404).json({ message: "Không tìm thấy bài viết" });
@@ -185,7 +213,7 @@ class ArticleController {
             for (let category of listCategories) {
                 const categoryDetail = await Category.findOne({
                     where: { category_id: category.category_id },
-                    attributes: ['category_id', 'name'] // Chỉ lấy category_id và name
+                    attributes: ['category_id', 'name', 'slug'] // Chỉ lấy category_id và name
                 });
                 if (categoryDetail) {
                     categories.push(categoryDetail);
