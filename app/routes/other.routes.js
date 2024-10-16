@@ -12,5 +12,6 @@ router.get('/new_users', ortherController.newUsers);
 router.get('/top_categories', ortherController.topCategories);
 router.get('/articles_username/:username', ortherController.getArticlesByUsername);
 router.get('/top_month', ortherController.topMonthView);
+router.post('/top_related/:id', ortherController.topRelated);
 
 module.exports = router;

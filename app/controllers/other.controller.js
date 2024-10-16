@@ -1,6 +1,7 @@
 const sequelize = require('../config/db.config.js');
 const Article = require('../models/article.model.js');
 const ArticleView = require('../models/article_view.model');
+const ArticleCategory = require('../models/article_category.model.js');
 const ArticleLike = require('../models/article_like.model');
 const Comment = require('../models/comment.model');
 const User = require('../models/user.model');
@@ -448,6 +449,65 @@ class OtherController {
             });
         }
     }
+
+    async topRelated(req, res) {
+        try {
+            const { categoryIds, tags } = req.body;
+            const { id } = req.params;
+
+            // Chuyển danh sách categoryIds và tags thành chuỗi để sử dụng trong SQL
+            const categoryIdsList = categoryIds.join(','); // e.g., "1,2,3"
+            const tagsConditions = tags.map(tag => `tags LIKE '%${tag}%'`).join(' OR '); // e.g., "tags LIKE '%tag1%' OR tags LIKE '%tag2%'"
+
+            // Truy vấn lấy bài viết cho các category
+            const categoryQuery = `
+                SELECT a.*, u.username, u.fullname, c.name AS category_name, c.slug AS category_slug
+                FROM articles a
+                JOIN article_categories ac ON a.article_id = ac.article_id
+                JOIN users u ON a.user_id = u.user_id 
+                JOIN categories c ON ac.category_id = c.category_id
+                WHERE ac.category_id IN (${categoryIdsList})
+                AND a.privacy = 'public'
+                AND a.is_draft = false
+                AND a.article_id <> ${id}  
+                ORDER BY a.createdAt DESC
+                LIMIT 3;
+            `;
+
+
+            // Truy vấn lấy bài viết dựa trên tags
+            const tagQuery = `
+                SELECT a.*, u.username, u.fullname, c.name AS category_name, c.slug AS category_slug
+                FROM articles a
+                JOIN article_categories ac ON a.article_id = ac.article_id
+                JOIN users u ON a.user_id = u.user_id 
+                JOIN categories c ON ac.category_id = c.category_id
+                WHERE (${tagsConditions})
+                AND a.privacy = 'public'
+                AND a.is_draft = false
+                AND a.article_id <> ${id} 
+                ORDER BY a.createdAt DESC
+                LIMIT 3;
+            `;
+
+            // Thực hiện các truy vấn SQL
+            const [categoryArticles] = await sequelize.query(categoryQuery);
+            const [tagArticles] = await sequelize.query(tagQuery);
+
+            // Kết hợp tất cả bài viết từ các chuyên mục và từ tags
+            const allArticles = categoryArticles.concat(tagArticles);
+
+            // Trả về kết quả
+            res.status(200).json({
+                message: 'Bài viết liên quan',
+                articles: allArticles
+            });
+        } catch (error) {
+            console.error('Lỗi khi lấy bài viết liên quan:', error);
+            res.status(500).json({ message: 'Có lỗi xảy ra khi lấy bài viết liên quan' });
+        }
+    }    
+
 }
 
 module.exports = new OtherController();
