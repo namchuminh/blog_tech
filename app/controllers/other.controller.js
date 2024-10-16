@@ -508,6 +508,38 @@ class OtherController {
         }
     }    
 
+    async topPopularToday(req, res) {
+        try {
+            const query = `
+                SELECT a.*, u.username, u.avatar_url, u.fullname, c.name AS category_name, c.slug AS category_slug, av.view_count
+                FROM articles a
+                JOIN article_views av ON a.article_id = av.article_id
+                JOIN users u ON a.user_id = u.user_id
+                JOIN article_categories ac ON a.article_id = ac.article_id
+                JOIN categories c ON ac.category_id = c.category_id
+                WHERE a.privacy = 'public'
+                  AND a.is_draft = false
+                  AND DATE(a.createdAt) <= CURDATE()  -- Lấy các bài viết từ hôm nay trở về trước
+                ORDER BY DATE(a.createdAt) DESC, av.view_count DESC
+                LIMIT 1;
+            `;
+    
+            const [results] = await sequelize.query(query);
+    
+            if (results.length === 0) {
+                return res.status(404).json({ message: 'Không tìm thấy bài viết phù hợp.' });
+            }
+    
+            // Chỉ lấy bài viết đầu tiên do có `LIMIT 1` trong query
+            const article = results[0];
+    
+            return res.status(200).json({ article });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: 'Có lỗi xảy ra khi lấy bài viết.', error });
+        }
+    }
+
 }
 
 module.exports = new OtherController();
