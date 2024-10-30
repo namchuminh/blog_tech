@@ -540,6 +540,63 @@ class OtherController {
         }
     }
 
+    async getArticlesFollowing(req, res) {
+        try {
+            const { userId } = req.user;
+            const { page = 1, limit = 10 } = req.query; // Defaults: page 1, 10 articles per page
+            const offset = (page - 1) * limit;
+        
+            // Query to count total articles
+            const countQuery = `
+                SELECT COUNT(*) AS totalArticles
+                FROM articles a
+                JOIN followers f ON f.followed_user_id = a.user_id
+                WHERE f.follower_user_id = :userId
+                  AND a.privacy = 'public'
+                  AND a.is_draft = false
+                  AND DATE(a.createdAt) <= CURDATE();
+            `;
+        
+            const [countResult] = await sequelize.query(countQuery, {
+                replacements: { userId }
+            });
+            const totalArticles = countResult[0].totalArticles;
+            const totalPages = Math.ceil(totalArticles / limit);
+        
+            // Query to get paginated articles
+            const articlesQuery = `
+                SELECT a.*, u.username, u.avatar_url, u.fullname, c.name AS category_name, c.slug AS category_slug, av.view_count
+                FROM articles a
+                JOIN users u ON a.user_id = u.user_id
+                JOIN followers f ON f.followed_user_id = u.user_id
+                LEFT JOIN article_views av ON a.article_id = av.article_id
+                LEFT JOIN article_categories ac ON a.article_id = ac.article_id
+                LEFT JOIN categories c ON ac.category_id = c.category_id
+                WHERE f.follower_user_id = :userId
+                  AND a.privacy = 'public'
+                  AND a.is_draft = false
+                  AND DATE(a.createdAt) <= CURDATE()
+                GROUP BY a.slug
+                ORDER BY DATE(a.createdAt) DESC, av.view_count DESC
+                LIMIT :limit OFFSET :offset;
+            `;
+        
+            const [articles] = await sequelize.query(articlesQuery, {
+                replacements: { userId, limit, offset }
+            });
+        
+            return res.status(200).json({
+                articles,
+                totalArticles,
+                currentPage: parseInt(page, 10),
+                totalPages
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: 'Có lỗi xảy ra khi lấy bài viết.', error });
+        }        
+    }
+
 }
 
 module.exports = new OtherController();
