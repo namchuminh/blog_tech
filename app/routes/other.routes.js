@@ -16,5 +16,7 @@ router.get('/top_month', ortherController.topMonthView);
 router.post('/top_related/:id', ortherController.topRelated);
 router.get('/popular_today', ortherController.topPopularToday);
 router.get('/articles_following', authenticateToken, ortherController.getArticlesFollowing);
+router.get('/articles_categories', ortherController.getArticlesByCategorySlug);
+
 
 module.exports = router;
