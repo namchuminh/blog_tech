@@ -606,6 +606,16 @@ class OtherController {
             // Calculate offset for pagination
             const offset = (page - 1) * limit;
 
+            const categoryQuery = `
+                SELECT name
+                FROM categories
+                WHERE slug = :slug;
+            `;
+            const result = await sequelize.query(categoryQuery, {
+                replacements: { slug },
+                type: sequelize.QueryTypes.SELECT
+            });
+
             // Query to get paginated articles with category slug and filters
             const articlesQuery = `
             SELECT a.article_id, a.title, a.content, a.image_url, a.slug AS article_slug, a.createdAt,
@@ -653,10 +663,11 @@ class OtherController {
 
             // Response with articles and pagination info
             return res.status(200).json({
+                categoryName: result.length > 0 ? result[0].name : null,
                 totalArticles,
                 currentPage: page,
                 totalPages,
-                articles
+                articles,
             });
 
         } catch (error) {
