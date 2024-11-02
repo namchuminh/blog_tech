@@ -883,6 +883,128 @@
 			]
 		},
 		{
+			"name": "Like",
+			"item": [
+				{
+					"name": "ListByArticle",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzMwNTQwNjE1LCJleHAiOjE3MzA1NDQyMTV9.Rlt-indmhT0cIUkWbsrDfeFfWaIVGG5-zNCge7hlp8c",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:3001/likes/:id/article",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "3001",
+							"path": [
+								"likes",
+								":id",
+								"article"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "33"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzMwNTQ1MzcyLCJleHAiOjE3MzA1NDg5NzJ9.9CsDixkXp54x3DUEAS1Ua3H_NuIBc6jnEpo4sNZA6l4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:3001/likes/:id/article",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "3001",
+							"path": [
+								"likes",
+								":id",
+								"article"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "33"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Liked",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzMwNTQ1MzcyLCJleHAiOjE3MzA1NDg5NzJ9.9CsDixkXp54x3DUEAS1Ua3H_NuIBc6jnEpo4sNZA6l4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:3001/likes/:id/liked",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "3001",
+							"path": [
+								"likes",
+								":id",
+								"liked"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "33"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "User",
 			"item": [
 				{
@@ -1748,7 +1870,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://127.0.0.1:3001/others/articles_categories",
+							"raw": "http://127.0.0.1:3001/others/articles_categories/?slug=369",
 							"protocol": "http",
 							"host": [
 								"127",
@@ -1759,7 +1881,14 @@
 							"port": "3001",
 							"path": [
 								"others",
-								"articles_categories"
+								"articles_categories",
+								""
+							],
+							"query": [
+								{
+									"key": "slug",
+									"value": "369"
+								}
 							]
 						}
 					},
