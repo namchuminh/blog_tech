@@ -200,13 +200,16 @@ class OtherController {
                     a.slug, 
                     a.image_url, 
                     a.user_id, 
+                    a.privacy, 
+                    a.is_draft, 
                     a.createdAt, 
                     u.username,
                     u.avatar_url,
-                    COALESCE(COUNT(ac.comment_id), 0) AS total_comments  -- Tính số lượng bình luận
+                    COALESCE(COUNT(ac.comment_id), 0) AS total_comments -- Tính số lượng bình luận
                 FROM articles AS a
-                LEFT JOIN comments AS ac ON a.article_id = ac.article_id  -- JOIN với bảng comments
-                LEFT JOIN users AS u ON a.user_id = u.user_id  -- JOIN với bảng users để lấy username
+                LEFT JOIN comments AS ac ON a.article_id = ac.article_id -- JOIN với bảng comments
+                LEFT JOIN users AS u ON a.user_id = u.user_id -- JOIN với bảng users để lấy username
+                WHERE a.privacy = 'public' AND a.is_draft = 0 -- Điều kiện lọc
                 GROUP BY 
                     a.article_id, 
                     a.title, 
@@ -214,7 +217,8 @@ class OtherController {
                     a.image_url, 
                     a.user_id, 
                     a.createdAt,
-                    u.username  -- Thêm username vào GROUP BY
+                    u.username, 
+                    u.avatar_url -- Thêm avatar_url vào GROUP BY nếu cần lấy cột này
                 ORDER BY total_comments DESC
                 LIMIT 4;
             `;
