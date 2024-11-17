@@ -680,6 +680,117 @@ class OtherController {
         }
     };
 
+    async statistics(req, res){
+        try {
+            const now = new Date();
+            const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+            // Số lượng bài viết được duyệt
+            const approvedArticlesDay = await Article.count({
+                where: { updatedAt: { [Op.gte]: startOfDay }, privacy: "public", is_draft: 0 }
+            });
+            const approvedArticlesWeek = await Article.count({
+                where: { updatedAt: { [Op.gte]: startOfWeek }, privacy: "public", is_draft: 0 }
+            });
+            const approvedArticlesMonth = await Article.count({
+                where: { updatedAt: { [Op.gte]: startOfMonth }, privacy: "public", is_draft: 0 }
+            });
+    
+            // Số lượng bài viết bị từ chối
+            const rejectedArticlesDay = await Article.count({
+                where: { updatedAt: { [Op.gte]: startOfDay }, privacy: "private", is_draft: 0 }
+            });
+            const rejectedArticlesWeek = await Article.count({
+                where: { updatedAt: { [Op.gte]: startOfWeek }, privacy: "private", is_draft: 0 }
+            });
+            const rejectedArticlesMonth = await Article.count({
+                where: { updatedAt: { [Op.gte]: startOfMonth }, privacy: "private", is_draft: 0 }
+            });
+    
+            // Số lượng người dùng mới đăng ký
+            const newUsersDay = await User.count({
+                where: { createdAt: { [Op.gte]: startOfDay } }
+            });
+            const newUsersWeek = await User.count({
+                where: { createdAt: { [Op.gte]: startOfWeek } }
+            });
+            const newUsersMonth = await User.count({
+                where: { createdAt: { [Op.gte]: startOfMonth } }
+            });
+    
+            // Số lượng bài viết theo tháng (1-12)
+            const articlesPerMonth = await Promise.all(
+                Array.from({ length: 12 }, (_, i) => 
+                    Article.count({
+                        where: {
+                            privacy: "public",
+                            is_draft: false, // is_draft: 0 (false)
+                            createdAt: {
+                                [Op.gte]: new Date(now.getFullYear(), i, 1),
+                                [Op.lt]: new Date(now.getFullYear(), i + 1, 1)
+                            }
+                        }
+                    })
+                )
+            );
+    
+            // Số lượng bình luận theo tháng (1-12)
+            const commentsPerMonth = await Promise.all(
+                Array.from({ length: 12 }, (_, i) => 
+                    Comment.count({
+                        where: {
+                            createdAt: {
+                                [Op.gte]: new Date(now.getFullYear(), i, 1),
+                                [Op.lt]: new Date(now.getFullYear(), i + 1, 1)
+                            }
+                        }
+                    })
+                )
+            );
+
+            // Số lượng người dùng đăng ký theo tháng (1-12)
+            const usersRegisteredPerMonth = await Promise.all(
+                Array.from({ length: 12 }, (_, i) => 
+                    User.count({
+                        where: {
+                            createdAt: {
+                                [Op.gte]: new Date(now.getFullYear(), i, 1),
+                                [Op.lt]: new Date(now.getFullYear(), i + 1, 1)
+                            }
+                        }
+                    })
+                )
+            );
+    
+            // Trả về kết quả
+            res.status(200).json({
+                approvedArticles: {
+                    day: approvedArticlesDay,
+                    week: approvedArticlesWeek,
+                    month: approvedArticlesMonth
+                },
+                rejectedArticles: {
+                    day: rejectedArticlesDay,
+                    week: rejectedArticlesWeek,
+                    month: rejectedArticlesMonth
+                },
+                newUsers: {
+                    day: newUsersDay,
+                    week: newUsersWeek,
+                    month: newUsersMonth
+                },
+                articlesPerMonth,
+                commentsPerMonth,
+                usersRegisteredPerMonth
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: "Lỗi khi truy xuất thống kê" });
+        }
+    }
+
 }
 
 module.exports = new OtherController();
